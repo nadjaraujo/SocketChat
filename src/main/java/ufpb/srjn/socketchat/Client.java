@@ -19,6 +19,9 @@ public class Client {
 	// I/O streams
 	private static DataInputStream in;
 	private static DataOutputStream out;
+	
+	// Username
+	private static String username;
 
 	/**
 	 *
@@ -39,6 +42,7 @@ public class Client {
 		}
 
 		// Run
+		username = args[2];
 		Scanner sc = new Scanner(System.in);
 		String user_input, server_incoming;
 
@@ -50,8 +54,14 @@ public class Client {
 				// Server told us to leave
 				if (server_incoming.equals("DISCONNECT"))
 					break;
+				
+				// Server told us to change names
+				if (server_incoming.startsWith("RENAME"))
+					username = server_incoming.split(" ")[1];
 
 				// Message ended with ": ", server is expecting user input
+				// FIXME: This will not work. Think of some way to be able to
+				// receive both user and server input at the same time.
 				if (server_incoming.endsWith(": ")) {
 					user_input = sc.nextLine();
 					out.writeUTF(user_input);
