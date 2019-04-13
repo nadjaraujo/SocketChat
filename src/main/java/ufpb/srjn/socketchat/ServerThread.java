@@ -78,8 +78,12 @@ public class ServerThread implements Runnable {
 							break;
 						}
 						
-						// TODO: Prevent two users from having the same username.
 						String new_username = words[1];
+						if (Server.clients.containsKey(new_username)) {
+							client.out.writeUTF("ERROR: This username is already taken.");
+							break;
+						}
+						
 						client.out.writeUTF("RENAME " + new_username);
 						break;
 					default:
