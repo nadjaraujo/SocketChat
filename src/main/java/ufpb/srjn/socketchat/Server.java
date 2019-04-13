@@ -2,7 +2,9 @@ package ufpb.srjn.socketchat;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.logging.*;
 
@@ -15,7 +17,7 @@ public class Server {
 	private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
 
 	// List of open client sockets
-	private static ArrayList<ClientInstance> clients = new ArrayList();
+	public static Map<String, ClientInstance> clients = new HashMap();
 
 	/**
 	 *
@@ -38,10 +40,21 @@ public class Server {
 					// Create client instance from open socket.
 					Socket socket = server.accept();
 					ClientInstance client = new ClientInstance(socket);
-					clients.add(client);
-					executor.execute(new ServerThread(client));
+					
+					if (!clients.containsKey(client.username)) {
+						clients.put(client.username, client);
+						executor.execute(new ServerThread(client));
+					} else {
+						// Another client with this username is already connected.
+						LOGGER.log(Level.INFO, "User tried to login with already existing username: {0}", client.username);
+						client.out.writeUTF("ERROR: This username is already taken.");
+						client.socket.close();
+					}
+					
 				} catch (IOException ex) {
 					LOGGER.log(Level.SEVERE, "Failed to open I/O streams after client connected: {0}", ex.getMessage());
+				} catch (Exception ex) {
+					LOGGER.log(Level.WARNING, "Error during client connection: {0}", ex.getMessage());
 				}
 			}
 		} catch (IOException ex) {
@@ -56,14 +69,18 @@ public class Server {
 	 * @param msg Message that will be sent.
 	 */
 	public static void sendGlobally(String msg) {
-		sockets.forEach((s) -> {
+		// TODO: Test if this works.
+		Iterator it = clients.entrySet().iterator();
+		
+		while (it.hasNext()) {
+			Map.Entry pair = (Map.Entry)it.next();
 			try {
-				DataOutputStream out = new DataOutputStream(s.getOutputStream());
-				out.writeUTF(msg);
+				ClientInstance client = (ClientInstance)pair.getValue();
+				client.out.writeUTF(msg);
 			} catch (IOException e) {
 				LOGGER.log(Level.WARNING, "Tried sending message to unreachable socket. Client is probably disconnected, removing from list...");
-				sockets.remove(s);
+				clients.remove((String)pair.getKey());
 			}
-		});
+		}
 	}
 }
