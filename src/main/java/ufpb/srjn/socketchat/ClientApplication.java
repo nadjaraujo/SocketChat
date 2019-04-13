@@ -50,8 +50,10 @@ public class ClientApplication {
 					break;
 				
 				// Server told us to change names
-				if (server_incoming.startsWith("RENAME"))
+				if (server_incoming.startsWith("RENAME")) {
 					client.username = server_incoming.split(" ")[1];
+					System.out.println("*** Username changed to " + client.username);
+				}
 
 				// Message ended with ": ", server is expecting user input
 				// FIXME: This will not work. Think of some way to be able to
