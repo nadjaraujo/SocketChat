@@ -43,9 +43,21 @@ public class ClientInstance {
 	 * @param socket The open socket associated with this client.
 	 * @throws java.io.IOException
 	 */
-	public ClientInstance(Socket socket) throws IOException {
+	public ClientInstance(Socket socket) throws IOException, Exception {
 		this.socket = socket;
 		this.in = new DataInputStream(socket.getInputStream());
 		this.out = new DataOutputStream(socket.getOutputStream());
+		
+		// Retrieve username as soon as client is connected.
+		String[] incoming = in.readUTF().split(" ");
+		if (!"RENAME".equals(incoming[0])) {
+			throw new Exception("First message must be a RENAME command, got: " + String.join(" ", incoming));
+		}
+		
+		if (incoming.length != 2) {
+			throw new Exception("Malformed RENAME command received during client connection.");
+		}
+		
+		this.username = incoming[1];
 	}
 }
