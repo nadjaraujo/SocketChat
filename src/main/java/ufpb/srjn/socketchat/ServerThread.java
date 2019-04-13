@@ -69,7 +69,12 @@ public class ServerThread implements Runnable {
 						}
 						break;
 					case "list":
-						// TODO: List all users in server.
+						String message = "*** Connected clients: ";
+						for (String username : Server.clients.keySet()) {
+							message += username + " ";
+						}
+						client.out.writeUTF(message);
+						
 						break;
 					case "rename":
 						// Client requested username change.
