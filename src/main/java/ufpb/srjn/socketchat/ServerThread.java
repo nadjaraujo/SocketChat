@@ -54,9 +54,16 @@ public class ServerThread implements Runnable {
 							String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + ": " + message_contents + " " + LocalDateTime.now();
 							
 							if ("-all".equals(words[1])) {
+								// Send to all users.
 								Server.sendGlobally(message);
 							} else if ("-user".equals(words[1])) {
-								// TODO: Send message to a specific user.
+								// Send to a specific user.
+								String desired_user = words[2];
+								if (Server.clients.containsKey(desired_user)) {
+									Server.clients.get(desired_user).out.writeUTF(message);
+								} else {
+									client.out.writeUTF("ERROR: The username " + desired_user + " does not exist.");
+								}
 							} else {
 								// Second parameter was neither -all nor -user, throw exception.
 								throw new Exception("Missing or wrong parameters for send command.");
