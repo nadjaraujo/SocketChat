@@ -9,19 +9,12 @@ import java.util.Scanner;
  *
  * @author samuel
  */
-public class Client {
+public class ClientApplication {
 	// Logger handle
-	private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(ClientApplication.class.getName());
 
-	// Socket
-	private static Socket socket;
-
-	// I/O streams
-	private static DataInputStream in;
-	private static DataOutputStream out;
-	
-	// Username
-	private static String username;
+	// Client instance
+	private static ClientInstance client;
 
 	/**
 	 *
@@ -32,9 +25,11 @@ public class Client {
 	public static void main(String[] args) {
 		// Connect to server
 		try {
-			socket = new Socket(args[0], Integer.parseInt(args[1]));
-			in = new DataInputStream(socket.getInputStream());
-			out = new DataOutputStream(socket.getOutputStream());
+			Socket socket = new Socket(args[0], Integer.parseInt(args[1]));
+			DataInputStream in = new DataInputStream(socket.getInputStream());
+			DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+			
+			client = new ClientInstance(socket, in, out, args[2]);
 		} catch (IOException ex) {
 			System.out.println("*** Error while connecting to server: " + ex.getMessage());
 		} catch (NumberFormatException ex) {
@@ -42,13 +37,12 @@ public class Client {
 		}
 
 		// Run
-		username = args[2];
 		Scanner sc = new Scanner(System.in);
 		String user_input, server_incoming;
 
 		try {
 			while (true) {
-				server_incoming = in.readUTF();
+				server_incoming = client.in.readUTF();
 				System.out.print(server_incoming);
 
 				// Server told us to leave
@@ -57,14 +51,14 @@ public class Client {
 				
 				// Server told us to change names
 				if (server_incoming.startsWith("RENAME"))
-					username = server_incoming.split(" ")[1];
+					client.username = server_incoming.split(" ")[1];
 
 				// Message ended with ": ", server is expecting user input
 				// FIXME: This will not work. Think of some way to be able to
 				// receive both user and server input at the same time.
 				if (server_incoming.endsWith(": ")) {
 					user_input = sc.nextLine();
-					out.writeUTF(user_input);
+					client.out.writeUTF(user_input);
 				}
 			}
 		} catch (IOException ex) {
@@ -73,9 +67,9 @@ public class Client {
 
 		try {
 			// Exit
-			in.close();
-			out.close();
-			socket.close();
+			client.in.close();
+			client.out.close();
+			client.socket.close();
 		} catch (IOException ex) {
 			// Exception while closing sockets, don't need to do anything
 		}

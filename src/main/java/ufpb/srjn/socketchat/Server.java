@@ -15,7 +15,7 @@ public class Server {
 	private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
 
 	// List of open client sockets
-	private static ArrayList<Socket> sockets = new ArrayList();
+	private static ArrayList<ClientInstance> clients = new ArrayList();
 
 	/**
 	 *
@@ -34,9 +34,15 @@ public class Server {
 
 			// Waits for incoming user connections
 			while (true) {
-				Socket socket = server.accept();
-				sockets.add(socket);
-				executor.execute(new ServerThread(socket));
+				try {
+					// Create client instance from open socket.
+					Socket socket = server.accept();
+					ClientInstance client = new ClientInstance(socket);
+					clients.add(client);
+					executor.execute(new ServerThread(client));
+				} catch (IOException ex) {
+					LOGGER.log(Level.SEVERE, "Failed to open I/O streams after client connected: {0}", ex.getMessage());
+				}
 			}
 		} catch (IOException ex) {
 			LOGGER.log(Level.SEVERE, "Failed to start server: {0}", ex.getMessage());

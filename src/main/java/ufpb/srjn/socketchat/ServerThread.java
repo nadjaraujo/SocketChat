@@ -2,6 +2,8 @@ package ufpb.srjn.socketchat;
 
 import java.net.*;
 import java.io.*;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.logging.*;
 
 /**
@@ -12,21 +14,17 @@ public class ServerThread implements Runnable {
 	// Logger handle
 	private static final Logger LOGGER = Logger.getLogger(ServerThread.class.getName());
 
-	// Client's socket
-	private final Socket socket;
-
-	// Client's I/O streams
-	private DataInputStream in;
-	private DataOutputStream out;
+	// Connected client instance
+	private final ClientInstance client;
 
 	/**
 	 *
 	 * Constructor.
 	 *
-	 * @param socket Socket that's already connected to the client.
+	 * @param client Client instance with an already-open socket.
 	 */
-	public ServerThread(Socket socket) {
-		this.socket = socket;
+	public ServerThread(ClientInstance client) {
+		this.client = client;
 	}
 
 	/**
@@ -38,31 +36,24 @@ public class ServerThread implements Runnable {
 	public void run() {
 		LOGGER.info("New incoming connection...");
 
-		// Open socket I/O streams.
-		try {
-			in = new DataInputStream(socket.getInputStream());
-			out = new DataOutputStream(socket.getOutputStream());
-		} catch (IOException ex) {
-			LOGGER.log(Level.SEVERE, "Failed to open I/O streams after client connected: {0}", ex.getMessage());
-		}
-
 		// Client-handling loop.
 		try {
 			while (true) {
-				String incoming = in.readUTF();
+				String incoming = client.in.readUTF();
 				String[] words = incoming.split(" ");
 				
 				switch (words[0]) {
 					case "bye":
 						// Client wants to disconnect.
-						out.writeUTF("DISCONNECT");
+						client.out.writeUTF("DISCONNECT");
 						break;
 					case "send":
 						try {
 							// Message format: <IP>:<PORT>/~<username> : <message> <hour-date>
+							String message_contents = String.join(" ", Arrays.copyOfRange(words, 2, words.length)); // TODO: Test if this line works.
+							String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + ": " + message_contents + " " + LocalDateTime.now();
+							
 							if ("-all".equals(words[1])) {
-								// TODO: Send message to everyone.
-								String message = "";
 								Server.sendGlobally(message);
 							} else if ("-user".equals(words[1])) {
 								// TODO: Send message to a specific user.
@@ -72,9 +63,9 @@ public class ServerThread implements Runnable {
 							}
 						} catch (ArrayIndexOutOfBoundsException ex) {
 							// Parameters were missing from the command.
-							out.writeUTF("ERROR: Malformed command.");
+							client.out.writeUTF("ERROR: Malformed command.");
 						} catch (Exception ex) {
-							out.writeUTF("ERROR: " + ex.getMessage());
+							client.out.writeUTF("ERROR: " + ex.getMessage());
 						}
 						break;
 					case "list":
@@ -83,17 +74,17 @@ public class ServerThread implements Runnable {
 					case "rename":
 						// Client requested username change.
 						if (words.length != 2) {
-							out.writeUTF("ERROR: Malformed command. Proper syntax is: rename <new name>");
+							client.out.writeUTF("ERROR: Malformed command. Proper syntax is: rename <new name>");
 							break;
 						}
 						
 						// TODO: Prevent two users from having the same username.
 						String new_username = words[1];
-						out.writeUTF("RENAME " + new_username);
+						client.out.writeUTF("RENAME " + new_username);
 						break;
 					default:
 						// Client sent some other command.
-						out.writeUTF("ERROR: Unknown command.");
+						client.out.writeUTF("ERROR: Unknown command.");
 				}
 			}
 		} catch (IOException ex) {
