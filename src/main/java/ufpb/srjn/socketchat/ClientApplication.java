@@ -32,8 +32,13 @@ public class ClientApplication {
 			client = new ClientInstance(socket, in, out, args[2]);
 		} catch (IOException ex) {
 			System.out.println("*** Error while connecting to server: " + ex.getMessage());
+			return;
 		} catch (NumberFormatException ex) {
 			System.out.println("*** Error: " + args[1] + " is not a valid port number.");
+			return;
+		} catch (ArrayIndexOutOfBoundsException ex) {
+			System.out.println("Usage: ClientApplication [IP address] [port] [username]");
+			return;
 		}
 
 		// Run
