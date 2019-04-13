@@ -51,8 +51,9 @@ public class ClientApplication {
 				System.out.print(server_incoming);
 
 				// Server told us to leave
-				if (server_incoming.equals("DISCONNECT"))
+				if (server_incoming.startsWith("DISCONNECT")) {
 					break;
+				}
 				
 				// Server told us to change names
 				if (server_incoming.startsWith("RENAME")) {

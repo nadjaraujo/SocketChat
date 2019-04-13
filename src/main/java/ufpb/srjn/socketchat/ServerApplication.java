@@ -9,12 +9,15 @@ import java.util.concurrent.*;
 import java.util.logging.*;
 
 /**
- *
+ * The ServerApplication class is responsible for listening for incoming
+ * connections. Every time a new client connects, a ServerThread is created to
+ * treat it.
+ * 
  * @author samuel
  */
-public class Server {
+public class ServerApplication {
 	// Logger handle
-	private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(ServerApplication.class.getName());
 
 	// List of open client sockets
 	public static Map<String, ClientInstance> clients = new HashMap();

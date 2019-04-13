@@ -7,7 +7,10 @@ import java.util.Arrays;
 import java.util.logging.*;
 
 /**
- *
+ * ServerThread dedicated to handling a single client connection. The main
+ * ServerApplication creates a new instance of this class every time a new client
+ * connects to the server.
+ * 
  * @author samuel
  */
 public class ServerThread implements Runnable {
@@ -39,15 +42,18 @@ public class ServerThread implements Runnable {
 		// Client-handling loop.
 		try {
 			while (true) {
+				// Read incoming data from client and split by spaces.
 				String incoming = client.in.readUTF();
 				String[] words = incoming.split(" ");
 				
+				// Switch based on which command the client sent.
 				switch (words[0]) {
 					case "bye":
 						// Client wants to disconnect.
 						client.out.writeUTF("DISCONNECT");
 						break;
 					case "send":
+						// Client wants to send a message.
 						try {
 							// Message format: <IP>:<PORT>/~<username> : <message> <hour-date>
 							String message_contents = String.join(" ", Arrays.copyOfRange(words, 2, words.length)); // TODO: Test if this line works.
@@ -55,12 +61,14 @@ public class ServerThread implements Runnable {
 							
 							if ("-all".equals(words[1])) {
 								// Send to all users.
-								Server.sendGlobally(message);
+								ServerApplication.sendGlobally(message);
 							} else if ("-user".equals(words[1])) {
 								// Send to a specific user.
 								String desired_user = words[2];
-								if (Server.clients.containsKey(desired_user)) {
-									Server.clients.get(desired_user).out.writeUTF(message);
+								
+								// Check if desired user exists before trying to send.
+								if (ServerApplication.clients.containsKey(desired_user)) {
+									ServerApplication.clients.get(desired_user).out.writeUTF(message);
 								} else {
 									client.out.writeUTF("ERROR: The username " + desired_user + " does not exist.");
 								}
@@ -69,29 +77,30 @@ public class ServerThread implements Runnable {
 								throw new Exception("Missing or wrong parameters for send command.");
 							}
 						} catch (ArrayIndexOutOfBoundsException ex) {
-							// Parameters were missing from the command.
+							// Some parameters were missing from the command.
 							client.out.writeUTF("ERROR: Malformed command.");
 						} catch (Exception ex) {
 							client.out.writeUTF("ERROR: " + ex.getMessage());
 						}
 						break;
 					case "list":
+						// Client asked for a list of connected clients.
 						String message = "*** Connected clients: ";
-						for (String username : Server.clients.keySet()) {
+						for (String username : ServerApplication.clients.keySet()) {
 							message += username + " ";
 						}
 						client.out.writeUTF(message);
 						
 						break;
 					case "rename":
-						// Client requested username change.
+						// Client requested an username change.
 						if (words.length != 2) {
 							client.out.writeUTF("ERROR: Malformed command. Proper syntax is: rename <new name>");
 							break;
 						}
 						
 						String new_username = words[1];
-						if (Server.clients.containsKey(new_username)) {
+						if (ServerApplication.clients.containsKey(new_username)) {
 							client.out.writeUTF("ERROR: This username is already taken.");
 							break;
 						}

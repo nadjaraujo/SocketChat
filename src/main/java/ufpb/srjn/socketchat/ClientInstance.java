@@ -38,7 +38,7 @@ public class ClientInstance {
 	
 	/**
 	 *
-	 * Constructor used by the Server.
+	 * Constructor used by the ServerApplication.
 	 *
 	 * @param socket The open socket associated with this client.
 	 * @throws java.io.IOException
