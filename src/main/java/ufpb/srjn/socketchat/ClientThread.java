@@ -35,8 +35,7 @@ public class ClientThread implements Runnable {
 			String server_incoming;
 			while (true) {
 				server_incoming = client.in.readUTF();
-				//System.out.print(server_incoming);
-				jframe.sendToTextField(server_incoming);
+				LOGGER.log(Level.INFO, server_incoming);
 
 				// Server told us to leave
 				if (server_incoming.startsWith("DISCONNECT")) {
@@ -44,9 +43,14 @@ public class ClientThread implements Runnable {
 				}
 
 				// Server told us to change names
-				if (server_incoming.startsWith("RENAME")) {
+				else if (server_incoming.startsWith("RENAME")) {
 					client.username = server_incoming.split(" ")[1];
-					System.out.println("*** Username changed to " + client.username);
+					jframe.sendToTextField("SUCCESS: Username changed to " + client.username);
+				}
+				
+				// Normal message incoming
+				else {
+					jframe.sendToTextField(server_incoming);
 				}
 			}
 		} catch (IOException ex) {
