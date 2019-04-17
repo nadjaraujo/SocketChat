@@ -40,7 +40,7 @@ public class ClientThread implements Runnable {
 
 				// Server told us to leave
 				if (server_incoming.startsWith("DISCONNECT")) {
-					break;
+					System.exit(0);
 				}
 
 				// Server told us to change names
@@ -50,7 +50,13 @@ public class ClientThread implements Runnable {
 				}
 			}
 		} catch (IOException ex) {
-			System.out.println("*** Error during communication with server: " + ex.getMessage());
+			JOptionPane.showMessageDialog(
+				jframe,
+				"Lost connection to server.",
+				"Error",
+				JOptionPane.ERROR_MESSAGE
+				);
+			System.exit(0);
 		}
 
 		try {
