@@ -153,14 +153,29 @@ public class ClientJFrame extends javax.swing.JFrame {
 
 					client = new ClientInstance(socket, in, out, username);
 				} catch (IOException ex) {
-					System.out.println("*** Error while connecting to server: " + ex.getMessage());
-					return;
+					JOptionPane.showMessageDialog(
+						jframe,
+						"Error while connecting to server: " + ex.getMessage(),
+						"Error",
+						JOptionPane.ERROR_MESSAGE
+						);
+					System.exit(-1);
 				} catch (NumberFormatException ex) {
-					System.out.println("*** Error: " + args[1] + " is not a valid port number.");
-					return;
+					JOptionPane.showMessageDialog(
+						jframe,
+						"Error: " + args[1] + " is not a valid port number.",
+						"Error",
+						JOptionPane.ERROR_MESSAGE
+						);
+					System.exit(-1);
 				} catch (ArrayIndexOutOfBoundsException ex) {
-					System.out.println("Invalid server address.");
-					return;
+					JOptionPane.showMessageDialog(
+						jframe,
+						"Invalid server address.",
+						"Error",
+						JOptionPane.ERROR_MESSAGE
+						);
+					System.exit(-1);
 				}
 
 				jframe.sendToTextField("*** Connected to " + ip_port);
