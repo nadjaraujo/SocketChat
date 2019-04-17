@@ -54,11 +54,11 @@ public class ServerThread implements Runnable {
 						// Client wants to send a message.
 						try {
 							// Message format: <IP>:<PORT>/~<username> : <message> <hour-date>
-							String message_contents = String.join(" ", Arrays.copyOfRange(words, 2, words.length)); // TODO: Test if this line works.
-							String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + ": " + message_contents + " " + LocalDateTime.now();
-
 							if ("-all".equals(words[1])) {
 								// Send to all users.
+								String message_contents = String.join(" ", Arrays.copyOfRange(words, 2, words.length));
+								String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + ": " + message_contents + " " + LocalDateTime.now();
+
 								ServerApplication.sendGlobally(message);
 							} else if ("-user".equals(words[1])) {
 								// Send to a specific user.
@@ -66,6 +66,9 @@ public class ServerThread implements Runnable {
 
 								// Check if desired user exists before trying to send.
 								if (ServerApplication.clients.containsKey(desired_user)) {
+									String message_contents = String.join(" ", Arrays.copyOfRange(words, 3, words.length));
+									String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + ": " + message_contents + " " + LocalDateTime.now();
+
 									ServerApplication.clients.get(desired_user).out.writeUTF(message);
 								} else {
 									client.out.writeUTF("ERROR: The username " + desired_user + " does not exist.");
