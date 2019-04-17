@@ -4,6 +4,7 @@ import java.net.*;
 import java.io.*;
 import java.util.logging.*;
 import java.util.Scanner;
+import javax.swing.JOptionPane;
 
 /**
  * This class runs alongside the client window and reads incoming messages from
@@ -22,6 +23,12 @@ public class ClientThread implements Runnable {
 	// JFrame instance that started this thread
 	private ClientJFrame jframe;
 
+	/**
+	 * Constructor: receives a ClientInstance that's already connected to a server
+	 * and the client's JFrame.
+	 * @param client A ClientInstance that's already connected to a server.
+	 * @param jframe The Client's JFrame.
+	 */
 	public ClientThread(ClientInstance client, ClientJFrame jframe) {
 		this.client = client;
 		this.jframe = jframe;
