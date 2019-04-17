@@ -178,7 +178,7 @@ public class ClientJFrame extends javax.swing.JFrame {
 					System.exit(-1);
 				}
 
-				jframe.sendToTextField("*** Connected to " + ip_port);
+				jframe.sendToTextField("*** Connected to " + ip_port + " as " + client.username);
 
 				// Create event-handling thread
 				Thread client_thread = new Thread(new ClientThread(client, jframe));
