@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 /**
- * This class is reponsible for the client's GUI.
+ * This class is responsible for the client's GUI.
  * @author samuel
  */
 public class ClientJFrame extends javax.swing.JFrame {
