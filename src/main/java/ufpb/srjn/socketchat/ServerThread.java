@@ -104,7 +104,11 @@ public class ServerThread implements Runnable {
 							break;
 						}
 
+						// Send username update to client
 						client.out.writeUTF("RENAME " + new_username);
+						client.username = new_username;
+						
+						// Update username on server's HashMap
 						ServerApplication.clients.remove(old_username);
 						ServerApplication.clients.put(client.username, client);
 						break;
