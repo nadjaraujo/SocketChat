@@ -8,12 +8,13 @@ import java.util.logging.*;
 
 /**
  * ServerThread dedicated to handling a single client connection. The main
- * ServerApplication creates a new instance of this class every time a new client
- * connects to the server.
- * 
+ * ServerApplication creates a new instance of this class every time a new
+ * client connects to the server.
+ *
  * @author samuel
  */
 public class ServerThread implements Runnable {
+	
 	// Logger handle
 	private static final Logger LOGGER = Logger.getLogger(ServerThread.class.getName());
 
@@ -21,9 +22,8 @@ public class ServerThread implements Runnable {
 	private final ClientInstance client;
 
 	/**
-	 *
 	 * Constructor.
-	 *
+	 * 
 	 * @param client Client instance with an already-open socket.
 	 */
 	public ServerThread(ClientInstance client) {
@@ -31,9 +31,7 @@ public class ServerThread implements Runnable {
 	}
 
 	/**
-	 *
 	 * Handles a single client.
-	 *
 	 */
 	@Override
 	public void run() {
@@ -45,7 +43,7 @@ public class ServerThread implements Runnable {
 				// Read incoming data from client and split by spaces.
 				String incoming = client.in.readUTF();
 				String[] words = incoming.split(" ");
-				
+
 				// Switch based on which command the client sent.
 				switch (words[0]) {
 					case "bye":
@@ -58,14 +56,14 @@ public class ServerThread implements Runnable {
 							// Message format: <IP>:<PORT>/~<username> : <message> <hour-date>
 							String message_contents = String.join(" ", Arrays.copyOfRange(words, 2, words.length)); // TODO: Test if this line works.
 							String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + ": " + message_contents + " " + LocalDateTime.now();
-							
+
 							if ("-all".equals(words[1])) {
 								// Send to all users.
 								ServerApplication.sendGlobally(message);
 							} else if ("-user".equals(words[1])) {
 								// Send to a specific user.
 								String desired_user = words[2];
-								
+
 								// Check if desired user exists before trying to send.
 								if (ServerApplication.clients.containsKey(desired_user)) {
 									ServerApplication.clients.get(desired_user).out.writeUTF(message);
@@ -90,7 +88,7 @@ public class ServerThread implements Runnable {
 							message += username + " ";
 						}
 						client.out.writeUTF(message);
-						
+
 						break;
 					case "rename":
 						// Client requested an username change.
@@ -98,14 +96,17 @@ public class ServerThread implements Runnable {
 							client.out.writeUTF("ERROR: Malformed command. Proper syntax is: rename <new name>");
 							break;
 						}
-						
+
 						String new_username = words[1];
+						String old_username = client.username;
 						if (ServerApplication.clients.containsKey(new_username)) {
 							client.out.writeUTF("ERROR: This username is already taken.");
 							break;
 						}
-						
+
 						client.out.writeUTF("RENAME " + new_username);
+						ServerApplication.clients.remove(old_username);
+						ServerApplication.clients.put(client.username, client);
 						break;
 					default:
 						// Client sent some other command.

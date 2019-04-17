@@ -12,7 +12,7 @@ import java.util.logging.*;
  * The ServerApplication class is responsible for listening for incoming
  * connections. Every time a new client connects, a ServerThread is created to
  * treat it.
- * 
+ *
  * @author samuel
  */
 public class ServerApplication {
@@ -23,9 +23,8 @@ public class ServerApplication {
 	public static Map<String, ClientInstance> clients = new HashMap();
 
 	/**
-	 *
 	 * Server entry point.
-	 *
+	 * 
 	 * @param args Command-line parameters.
 	 */
 	public static void main(String[] args) {
@@ -43,7 +42,7 @@ public class ServerApplication {
 					// Create client instance from open socket.
 					Socket socket = server.accept();
 					ClientInstance client = new ClientInstance(socket);
-					
+
 					if (!clients.containsKey(client.username)) {
 						clients.put(client.username, client);
 						executor.execute(new ServerThread(client));
@@ -53,7 +52,7 @@ public class ServerApplication {
 						client.out.writeUTF("ERROR: This username is already taken.");
 						client.socket.close();
 					}
-					
+
 				} catch (IOException ex) {
 					LOGGER.log(Level.SEVERE, "Failed to open I/O streams after client connected: {0}", ex.getMessage());
 				} catch (Exception ex) {
@@ -66,23 +65,22 @@ public class ServerApplication {
 	}
 
 	/**
-	 *
 	 * Sends a UTF-8 message to all connected clients.
-	 *
+	 * 
 	 * @param msg Message that will be sent.
 	 */
 	public static void sendGlobally(String msg) {
 		// TODO: Test if this works.
 		Iterator it = clients.entrySet().iterator();
-		
+
 		while (it.hasNext()) {
-			Map.Entry pair = (Map.Entry)it.next();
+			Map.Entry pair = (Map.Entry) it.next();
 			try {
-				ClientInstance client = (ClientInstance)pair.getValue();
+				ClientInstance client = (ClientInstance) pair.getValue();
 				client.out.writeUTF(msg);
 			} catch (IOException e) {
 				LOGGER.log(Level.WARNING, "Tried sending message to unreachable socket. Client is probably disconnected, removing from list...");
-				clients.remove((String)pair.getKey());
+				clients.remove((String) pair.getKey());
 			}
 		}
 	}
