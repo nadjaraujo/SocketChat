@@ -35,8 +35,10 @@ public class ServerThread implements Runnable {
 	 */
 	@Override
 	public void run() {
+		// Announce new connection
 		LOGGER.info("New incoming connection...");
-
+		ServerApplication.sendGlobally("*** " + client.username + " has connected.");
+		
 		// Client-handling loop.
 		try {
 			while (true) {
