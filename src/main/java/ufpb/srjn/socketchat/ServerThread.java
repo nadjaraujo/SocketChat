@@ -63,13 +63,22 @@ public class ServerThread implements Runnable {
 							} else if ("-user".equals(words[1])) {
 								// Send to a specific user.
 								String desired_user = words[2];
+								
+								// Make sure client is not sending himself a message.
+								if (client.username.equals(desired_user)) {
+									client.out.writeUTF("ERROR: You can't send a private message to yourself.");
+								}
 
 								// Check if desired user exists before trying to send.
-								if (ServerApplication.clients.containsKey(desired_user)) {
+								else if (ServerApplication.clients.containsKey(desired_user)) {
 									String message_contents = String.join(" ", Arrays.copyOfRange(words, 3, words.length));
 									String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + ": " + message_contents + " " + LocalDateTime.now();
 
+									// Send to desired client...
 									ServerApplication.clients.get(desired_user).out.writeUTF(message);
+									
+									// ...and echo back to the client that sent it
+									client.out.writeUTF(message);
 								} else {
 									client.out.writeUTF("ERROR: The username " + desired_user + " does not exist.");
 								}
