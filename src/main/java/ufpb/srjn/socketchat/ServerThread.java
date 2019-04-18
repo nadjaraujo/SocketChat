@@ -74,7 +74,7 @@ public class ServerThread implements Runnable {
 								// Check if desired user exists before trying to send.
 								else if (ServerApplication.clients.containsKey(desired_user)) {
 									String message_contents = String.join(" ", Arrays.copyOfRange(words, 3, words.length));
-									String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + ": " + message_contents + " " + LocalDateTime.now();
+									String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + " to " + desired_user + " (private): " + message_contents + " " + LocalDateTime.now();
 
 									// Send to desired client...
 									ServerApplication.clients.get(desired_user).out.writeUTF(message);
