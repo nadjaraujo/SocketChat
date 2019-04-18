@@ -2,8 +2,12 @@ package ufpb.srjn.socketchat;
 
 import java.io.*;
 import java.net.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.*;
@@ -21,7 +25,7 @@ public class ServerApplication {
 	private static final Logger LOGGER = Logger.getLogger(ServerApplication.class.getName());
 
 	// List of open client sockets
-	public static Map<String, ClientInstance> clients = new HashMap();
+	private static Map<String, ClientInstance> clients = new HashMap();
 
 	/**
 	 * Server entry point.
@@ -87,6 +91,23 @@ public class ServerApplication {
 	}
 	
 	/**
+	 * Sends a UTF-8 message to a specific client.
+	 * 
+	 * @param msg Message that will be sent.
+	 * @param username Which user to send the message to.
+	 * @throws java.io.IOException
+	 */
+	public synchronized static void sendToClient(String msg, String username) throws IOException {
+		// Check if desired user exists before trying to send.
+		if (!ServerApplication.clients.containsKey(username)) {
+			throw new NoSuchElementException("The username " + username + " does not exist.");
+		}
+
+		// Send to desired client.
+		clients.get(username).out.writeUTF(msg);
+	}
+	
+	/**
 	 * Removes a client from the server.
 	 * 
 	 * @param username Client to remove.
@@ -136,5 +157,19 @@ public class ServerApplication {
 		
 		// Announce username change to everyone
 		sendGlobally("*** " + old_username + " changed username to " + new_username);
+	}
+	
+	/**
+	 * Returns a list of all usernames currently connected.
+	 * @return List of usernames.
+	 */
+	public synchronized static List<String> getUsernameList() {
+		List<String> list = new ArrayList<>();
+		
+		clients.keySet().forEach((username) -> {
+			list.add(username);
+		});
+		
+		return list;
 	}
 }

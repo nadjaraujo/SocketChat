@@ -4,6 +4,7 @@ import java.net.*;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.logging.*;
 
 /**
@@ -71,17 +72,16 @@ public class ServerThread implements Runnable {
 									client.out.writeUTF("ERROR: You can't send a private message to yourself.");
 								}
 
-								// Check if desired user exists before trying to send.
-								else if (ServerApplication.clients.containsKey(desired_user)) {
-									String message_contents = String.join(" ", Arrays.copyOfRange(words, 3, words.length));
-									String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + " to " + desired_user + " (private): " + message_contents + " " + LocalDateTime.now();
+								String message_contents = String.join(" ", Arrays.copyOfRange(words, 3, words.length));
+								String message = client.socket.getInetAddress() + ":" + client.socket.getPort() + "/~" + client.username + " to " + desired_user + " (private): " + message_contents + " " + LocalDateTime.now();
 
+								try {
 									// Send to desired client...
-									ServerApplication.clients.get(desired_user).out.writeUTF(message);
+									ServerApplication.sendToClient(message, desired_user);
 									
 									// ...and echo back to the client that sent it
 									client.out.writeUTF(message);
-								} else {
+								} catch (NoSuchElementException ex) {
 									client.out.writeUTF("ERROR: The username " + desired_user + " does not exist.");
 								}
 							} else {
@@ -98,7 +98,7 @@ public class ServerThread implements Runnable {
 					case "list":
 						// Client asked for a list of connected clients.
 						String message = "*** Connected clients: ";
-						for (String username : ServerApplication.clients.keySet()) {
+						for (String username : ServerApplication.getUsernameList()) {
 							message += username + " ";
 						}
 						client.out.writeUTF(message);
