@@ -58,6 +58,7 @@ public class ClientJFrame extends javax.swing.JFrame {
             }
         });
 
+        chatTextArea.setEditable(false);
         chatTextArea.setColumns(20);
         chatTextArea.setRows(5);
         jScrollPane1.setViewportView(chatTextArea);
