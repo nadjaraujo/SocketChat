@@ -50,6 +50,12 @@ public class ServerThread implements Runnable {
 				// Switch based on which command the client sent.
 				switch (words[0]) {
 					case "bye":
+						// Malformed command.
+						if (words.length != 1) {
+							client.out.writeUTF("ERROR: bye does not take any extra parameters.");
+							break;
+						}
+						
 						// Client wants to disconnect.
 						client.out.writeUTF("DISCONNECT");
 						break;
@@ -96,6 +102,12 @@ public class ServerThread implements Runnable {
 						}
 						break;
 					case "list":
+						// Malformed command.
+						if (words.length != 1) {
+							client.out.writeUTF("ERROR: list does not take any extra parameters.");
+							break;
+						}
+						
 						// Client asked for a list of connected clients.
 						String message = "*** Connected clients: ";
 						for (String username : ServerApplication.getUsernameList()) {
@@ -105,13 +117,13 @@ public class ServerThread implements Runnable {
 
 						break;
 					case "rename":
-						// Client requested an username change.
+						// Malformed command.
 						if (words.length != 2) {
 							client.out.writeUTF("ERROR: Malformed command. Proper syntax is: rename <new name>");
 							break;
 						}
 
-						// Rename
+						// Client requested a rename.
 						String new_username = words[1];
 						String old_username = client.username;
 						ServerApplication.renameClient(old_username, new_username);					
