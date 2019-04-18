@@ -52,7 +52,6 @@ public class ClientThread implements Runnable {
 				// Server told us to change names
 				else if (server_incoming.startsWith("RENAME")) {
 					client.username = server_incoming.split(" ")[1];
-					jframe.sendToTextField("SUCCESS: Username changed to " + client.username);
 				}
 				
 				// Normal message incoming

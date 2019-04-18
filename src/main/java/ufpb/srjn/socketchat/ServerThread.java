@@ -111,20 +111,10 @@ public class ServerThread implements Runnable {
 							break;
 						}
 
+						// Rename
 						String new_username = words[1];
 						String old_username = client.username;
-						if (ServerApplication.clients.containsKey(new_username)) {
-							client.out.writeUTF("ERROR: This username is already taken.");
-							break;
-						}
-
-						// Send username update to client
-						client.out.writeUTF("RENAME " + new_username);
-						client.username = new_username;
-						
-						// Update username on server's HashMap
-						ServerApplication.clients.remove(old_username);
-						ServerApplication.clients.put(client.username, client);
+						ServerApplication.renameClient(old_username, new_username);					
 						break;
 					default:
 						// Client sent some other command.

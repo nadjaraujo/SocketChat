@@ -110,4 +110,31 @@ public class ServerApplication {
 		// Remove from server's client list.
 		clients.remove(username);
 	}
+	
+	/**
+	 * Renames a client in the server.
+	 * 
+	 * @param old_username Original username.
+	 * @param new_username New username.
+	 * @throws java.io.IOException
+	 */
+	public synchronized static void renameClient(String old_username, String new_username) throws IOException {
+		ClientInstance client = clients.get(old_username);
+		
+		if (ServerApplication.clients.containsKey(new_username)) {
+			client.out.writeUTF("ERROR: This username is already taken.");
+			return;
+		}
+
+		// Send username update to client
+		client.out.writeUTF("RENAME " + new_username);
+		client.username = new_username;
+
+		// Update username on server's HashMap
+		clients.remove(old_username);
+		clients.put(client.username, client);
+		
+		// Announce username change to everyone
+		sendGlobally("*** " + old_username + " changed username to " + new_username);
+	}
 }
