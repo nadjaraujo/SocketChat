@@ -121,7 +121,9 @@ public class ServerThread implements Runnable {
 				}
 			}
 		} catch (IOException ex) {
-			LOGGER.log(Level.WARNING, "Error while listening for incoming messages from client: {0}", ex.getMessage());
+			LOGGER.log(Level.WARNING, "I/O exception while listening for incoming messages from client: {0}", ex.getMessage());
+			ServerApplication.removeClient(client.username);
+			ServerApplication.sendGlobally("*** " + client.username + " has disconnected from the server.");
 		}
 	}
 }

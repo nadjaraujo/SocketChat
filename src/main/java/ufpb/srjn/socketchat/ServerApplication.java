@@ -5,6 +5,7 @@ import java.net.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.*;
 import java.util.logging.*;
 
@@ -83,5 +84,30 @@ public class ServerApplication {
 				clients.remove((String) pair.getKey());
 			}
 		}
+	}
+	
+	/**
+	 * Removes a client from the server.
+	 * 
+	 * @param username Client to remove.
+	 */
+	public synchronized static void removeClient(String username) {
+		// Check if client exists first
+		ClientInstance client = clients.get(username);
+		if (client == null) {
+			throw new NoSuchElementException("Username does not exist on the server.");
+		}
+		
+		try {
+			// Tell client to disconnect and close his socket, incase he's still here.
+			client.out.writeUTF("DISCONNECT");
+			client.out.flush();
+			client.socket.close();
+		} catch (IOException ex) {
+			// Error while telling client to disconnect, he's probably already gone.
+		}
+		
+		// Remove from server's client list.
+		clients.remove(username);
 	}
 }
