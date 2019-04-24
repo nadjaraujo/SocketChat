@@ -29,6 +29,7 @@ public class ClientJFrame extends javax.swing.JFrame {
 
 	/**
 	 * Sends a new line to the chat text field.
+	 * @param message Message to send to text field.
 	 */
 	public void sendToTextField(String message) {
 		chatTextArea.append(message + "\n");
@@ -96,13 +97,12 @@ public class ClientJFrame extends javax.swing.JFrame {
     private void inputTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inputTextFieldActionPerformed
 		// Client tried to send a message
 		String input = inputTextField.getText();
-		System.out.println("Action performed: " + input);
 
 		try {
 			// Send to server
-			client.out.writeUTF(input);
+			client.writeOut(input);
 		} catch (IOException ex) {
-			LOGGER.log(Level.SEVERE, "*** Error sending message to server: " + ex.getMessage());
+			LOGGER.log(Level.SEVERE, "*** Error sending message to server: {0}", ex.getMessage());
 		}
 
 		// Clear input field
@@ -142,11 +142,23 @@ public class ClientJFrame extends javax.swing.JFrame {
 				ClientJFrame jframe = new ClientJFrame();
 				jframe.setVisible(true);
 
-				// Receive IP. port and username from user
+				// Receive IP, port, password and username from user.
 				String ip_port = JOptionPane.showInputDialog("Input the server address and port (format: <ip address>:<port>)");
+				if (ip_port == null)
+					System.exit(0);
+				
+				String password = JOptionPane.showInputDialog("Input the server password:");
+				if (password == null)
+					System.exit(0);
+				
 				String username = JOptionPane.showInputDialog("Input your desired username:");
+				if (username == null)
+					System.exit(0);
 
-				// Connect to server
+				// Pass along the password to the authenticator class.
+				Authenticator.setPassword(password);
+				
+				// Connect to server.
 				try {
 					Socket socket = new Socket(ip_port.split(":")[0], Integer.parseInt(ip_port.split(":")[1]));
 					DataInputStream in = new DataInputStream(socket.getInputStream());

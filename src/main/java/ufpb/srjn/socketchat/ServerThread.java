@@ -1,6 +1,5 @@
 package ufpb.srjn.socketchat;
 
-import java.net.*;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -44,7 +43,7 @@ public class ServerThread implements Runnable {
 		try {
 			while (true) {
 				// Read incoming data from client and split by spaces.
-				String incoming = client.in.readUTF();
+				String incoming = client.readIn();
 				String[] words = incoming.split(" ");
 
 				// Switch based on which command the client sent.
@@ -52,12 +51,12 @@ public class ServerThread implements Runnable {
 					case "bye":
 						// Malformed command.
 						if (words.length != 1) {
-							client.out.writeUTF("ERROR: bye does not take any extra parameters.");
+							client.writeOut("ERROR: bye does not take any extra parameters.");
 							break;
 						}
 						
 						// Client wants to disconnect.
-						client.out.writeUTF("DISCONNECT");
+						client.writeOut("DISCONNECT");
 						break;
 					case "send":
 						// Client wants to send a message.
@@ -75,7 +74,8 @@ public class ServerThread implements Runnable {
 								
 								// Make sure client is not sending himself a message.
 								if (client.username.equals(desired_user)) {
-									client.out.writeUTF("ERROR: You can't send a private message to yourself.");
+									client.writeOut("ERROR: You can't send a private message to yourself.");
+									break;
 								}
 
 								String message_contents = String.join(" ", Arrays.copyOfRange(words, 3, words.length));
@@ -86,9 +86,9 @@ public class ServerThread implements Runnable {
 									ServerApplication.sendToClient(message, desired_user);
 									
 									// ...and echo back to the client that sent it
-									client.out.writeUTF(message);
+									client.writeOut(message);
 								} catch (NoSuchElementException ex) {
-									client.out.writeUTF("ERROR: The username " + desired_user + " does not exist.");
+									client.writeOut("ERROR: The username " + desired_user + " does not exist.");
 								}
 							} else {
 								// Second parameter was neither -all nor -user, throw exception.
@@ -96,15 +96,15 @@ public class ServerThread implements Runnable {
 							}
 						} catch (ArrayIndexOutOfBoundsException ex) {
 							// Some parameters were missing from the command.
-							client.out.writeUTF("ERROR: Malformed command.");
+							client.writeOut("ERROR: Malformed command.");
 						} catch (Exception ex) {
-							client.out.writeUTF("ERROR: " + ex.getMessage());
+							client.writeOut("ERROR: " + ex.getMessage());
 						}
 						break;
 					case "list":
 						// Malformed command.
 						if (words.length != 1) {
-							client.out.writeUTF("ERROR: list does not take any extra parameters.");
+							client.writeOut("ERROR: list does not take any extra parameters.");
 							break;
 						}
 						
@@ -113,13 +113,13 @@ public class ServerThread implements Runnable {
 						for (String username : ServerApplication.getUsernameList()) {
 							message += username + " ";
 						}
-						client.out.writeUTF(message);
+						client.writeOut(message);
 
 						break;
 					case "rename":
 						// Malformed command.
 						if (words.length != 2) {
-							client.out.writeUTF("ERROR: Malformed command. Proper syntax is: rename <new name>");
+							client.writeOut("ERROR: Malformed command. Proper syntax is: rename <new name>");
 							break;
 						}
 
@@ -130,7 +130,7 @@ public class ServerThread implements Runnable {
 						break;
 					default:
 						// Client sent some other command.
-						client.out.writeUTF("ERROR: Unknown command.");
+						client.writeOut("ERROR: Unknown command.");
 				}
 			}
 		} catch (IOException ex) {

@@ -1,9 +1,7 @@
 package ufpb.srjn.socketchat;
 
-import java.net.*;
 import java.io.*;
 import java.util.logging.*;
-import java.util.Scanner;
 import javax.swing.JOptionPane;
 
 /**
@@ -37,11 +35,12 @@ public class ClientThread implements Runnable {
 	/**
 	 * Client thread entry point.
 	 */
+	@Override
 	public void run() {
 		try {
 			String server_incoming;
 			while (true) {
-				server_incoming = client.in.readUTF();
+				server_incoming = client.readIn();
 				LOGGER.log(Level.INFO, server_incoming);
 
 				// Server told us to leave
@@ -71,9 +70,7 @@ public class ClientThread implements Runnable {
 
 		try {
 			// Exit
-			client.in.close();
-			client.out.close();
-			client.socket.close();
+			client.close();
 		} catch (IOException ex) {
 			// Exception while closing sockets, don't need to do anything
 		}

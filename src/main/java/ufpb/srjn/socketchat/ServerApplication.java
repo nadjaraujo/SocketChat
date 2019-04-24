@@ -2,9 +2,7 @@ package ufpb.srjn.socketchat;
 
 import java.io.*;
 import java.net.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -21,44 +19,62 @@ import java.util.logging.*;
  * @author samuel
  */
 public class ServerApplication {
+	
 	// Logger handle
 	private static final Logger LOGGER = Logger.getLogger(ServerApplication.class.getName());
 
 	// List of open client sockets
 	private static Map<String, ClientInstance> clients = new HashMap();
-
+	
 	/**
 	 * Server entry point.
 	 * 
 	 * @param args Command-line parameters.
 	 */
 	public static void main(String[] args) {
-		// Create thread pool to handle multiple clients
+		// Create thread pool to handle multiple clients.
 		ExecutorService executor = Executors.newCachedThreadPool();
 
+		// Validate user-supplied command line parameters.
+		if (args.length != 2) {
+			System.out.println("ERROR: Incorrect number of parameters.\nUsage: ServerApplication [port] [password]");
+			return;
+		}
+		
+		Integer port;
+		String password;
+		
 		try {
-			// Starts TCP server on predefined port
-			LOGGER.info("Starting server...");
-			ServerSocket server = new ServerSocket(27888);
+			port = Integer.parseInt(args[0]);
+			password = args[1];
+		} catch (NumberFormatException ex) {
+			System.out.println("ERROR: Failed to parse port number.");
+			return;
+		}
+		
+		try {
+			// Start TCP server on specified port, initialize authenticator class.
+			LOGGER.log(Level.INFO, "Starting server on port {0}...", port.toString());
+			ServerSocket server = new ServerSocket(port);
+			Authenticator.setPassword(password);
 
-			// Waits for incoming user connections
+			// Wait for incoming user connections.
 			while (true) {
 				try {
 					// Create client instance from open socket.
 					Socket socket = server.accept();
 					ClientInstance client = new ClientInstance(socket);
-
+					
+					// Make sure the connecting client's username is unique.
 					if (!clients.containsKey(client.username)) {
 						clients.put(client.username, client);
 						executor.execute(new ServerThread(client));
 					} else {
 						// Another client with this username is already connected.
 						LOGGER.log(Level.INFO, "User tried to login with already existing username: {0}", client.username);
-						client.out.writeUTF("ERROR: This username is already taken.");
-						client.out.flush();
-						client.socket.close();
+						client.writeOut("ERROR: This username is already taken.");
+						client.close();
 					}
-
 				} catch (IOException ex) {
 					LOGGER.log(Level.SEVERE, "Failed to open I/O streams after client connected: {0}", ex.getMessage());
 				} catch (Exception ex) {
@@ -75,14 +91,14 @@ public class ServerApplication {
 	 * 
 	 * @param msg Message that will be sent.
 	 */
-	public static void sendGlobally(String msg) {
+	public synchronized static void sendGlobally(String msg) {
 		Iterator it = clients.entrySet().iterator();
 
 		while (it.hasNext()) {
 			Map.Entry pair = (Map.Entry) it.next();
 			try {
 				ClientInstance client = (ClientInstance) pair.getValue();
-				client.out.writeUTF(msg);
+				client.writeOut(msg);
 			} catch (IOException e) {
 				LOGGER.log(Level.INFO, "Tried sending message to unreachable socket. Client is probably disconnected, removing from list...");
 				clients.remove((String) pair.getKey());
@@ -104,7 +120,7 @@ public class ServerApplication {
 		}
 
 		// Send to desired client.
-		clients.get(username).out.writeUTF(msg);
+		clients.get(username).writeOut(msg);
 	}
 	
 	/**
@@ -121,9 +137,8 @@ public class ServerApplication {
 		
 		try {
 			// Tell client to disconnect and close his socket, incase he's still here.
-			client.out.writeUTF("DISCONNECT");
-			client.out.flush();
-			client.socket.close();
+			client.writeOut("DISCONNECT");
+			client.close();
 		} catch (IOException ex) {
 			// Error while telling client to disconnect, he's probably already gone.
 		}
@@ -143,12 +158,12 @@ public class ServerApplication {
 		ClientInstance client = clients.get(old_username);
 		
 		if (ServerApplication.clients.containsKey(new_username)) {
-			client.out.writeUTF("ERROR: This username is already taken.");
+			client.writeOut("ERROR: This username is already taken.");
 			return;
 		}
 
 		// Send username update to client
-		client.out.writeUTF("RENAME " + new_username);
+		client.writeOut("RENAME " + new_username);
 		client.username = new_username;
 
 		// Update username on server's HashMap
