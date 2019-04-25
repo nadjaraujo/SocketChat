@@ -33,6 +33,7 @@ public class ClientJFrame extends javax.swing.JFrame {
 	 */
 	public void sendToTextField(String message) {
 		chatTextArea.append(message + "\n");
+		chatTextArea.setCaretPosition(chatTextArea.getText().length());
 	}
 
 	/**
