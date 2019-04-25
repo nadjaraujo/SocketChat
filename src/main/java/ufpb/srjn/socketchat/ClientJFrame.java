@@ -176,7 +176,7 @@ public class ClientJFrame extends javax.swing.JFrame {
 				} catch (NumberFormatException ex) {
 					JOptionPane.showMessageDialog(
 						jframe,
-						"Error: " + args[1] + " is not a valid port number.",
+						"Error: " + ip_port.split(":")[1] + " is not a valid port number.",
 						"Error",
 						JOptionPane.ERROR_MESSAGE
 						);
